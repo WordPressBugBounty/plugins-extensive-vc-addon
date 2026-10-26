@@ -22,7 +22,7 @@ if ( ! class_exists( 'EVCProcess2' ) ) {
 		function __construct() {
 			$this->setBase( 'evc_process_2' );
 			$this->setChildBase( 'evc_process_2_item' );
-			$this->setShortcodeName( esc_html__( 'Process 2', 'extensive-vc' ) );
+			$this->setShortcodeName( esc_html__( 'Process 2', 'extensive-vc-addon' ) );
 			$this->setShortcodeParameters( $this->shortcodeParameters() );
 			
 			// Parent constructor need to be loaded after setter's method initialization
@@ -66,35 +66,35 @@ if ( ! class_exists( 'EVCProcess2' ) ) {
 				array(
 					'type'        => 'textfield',
 					'param_name'  => 'custom_class',
-					'heading'     => esc_html__( 'Custom CSS Class', 'extensive-vc' ),
-					'description' => esc_html__( 'Style particular content element differently - add a class name and refer to it in custom CSS', 'extensive-vc' )
+					'heading'     => esc_html__( 'Custom CSS Class', 'extensive-vc-addon' ),
+					'description' => esc_html__( 'Style particular content element differently - add a class name and refer to it in custom CSS', 'extensive-vc-addon' )
 				),
 				array(
 					'type'       => 'dropdown',
 					'param_name' => 'number_of_columns',
-					'heading'    => esc_html__( 'Number of Columns', 'extensive-vc' ),
+					'heading'    => esc_html__( 'Number of Columns', 'extensive-vc-addon' ),
 					'value'      => array_flip( extensive_vc_get_number_of_columns_array( array( 'one', 'five', 'six' ) ) )
 				),
 				array(
 					'type'        => 'dropdown',
 					'param_name'  => 'switch_to_one_column',
-					'heading'     => esc_html__( 'Switch to One Column', 'extensive-vc' ),
+					'heading'     => esc_html__( 'Switch to One Column', 'extensive-vc-addon' ),
 					'value'       => array(
-						esc_html__( 'Default None', 'extensive-vc' ) => '',
-						esc_html__( 'Below 1366px', 'extensive-vc' ) => '1366',
-						esc_html__( 'Below 1280px', 'extensive-vc' ) => '1280',
-						esc_html__( 'Below 1024px', 'extensive-vc' ) => '1024',
-						esc_html__( 'Below 768px', 'extensive-vc' )  => '768',
-						esc_html__( 'Below 680px', 'extensive-vc' )  => '680',
-						esc_html__( 'Below 480px', 'extensive-vc' )  => '480'
+						esc_html__( 'Default None', 'extensive-vc-addon' ) => '',
+						esc_html__( 'Below 1366px', 'extensive-vc-addon' ) => '1366',
+						esc_html__( 'Below 1280px', 'extensive-vc-addon' ) => '1280',
+						esc_html__( 'Below 1024px', 'extensive-vc-addon' ) => '1024',
+						esc_html__( 'Below 768px', 'extensive-vc-addon' )  => '768',
+						esc_html__( 'Below 680px', 'extensive-vc-addon' )  => '680',
+						esc_html__( 'Below 480px', 'extensive-vc-addon' )  => '480'
 					),
-					'description' => esc_html__( 'Choose on which stage item will be full width', 'extensive-vc' )
+					'description' => esc_html__( 'Choose on which stage item will be full width', 'extensive-vc-addon' )
 				),
 				array(
 					'type'        => 'attach_image',
 					'param_name'  => 'background_cover_image',
-					'heading'     => esc_html__( 'Background Cover Image', 'extensive-vc' ),
-					'description' => esc_html__( 'Select image from media library', 'extensive-vc' )
+					'heading'     => esc_html__( 'Background Cover Image', 'extensive-vc-addon' ),
+					'description' => esc_html__( 'Select image from media library', 'extensive-vc-addon' )
 				)
 			);
 			

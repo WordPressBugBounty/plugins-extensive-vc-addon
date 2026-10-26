@@ -22,7 +22,7 @@ if ( ! class_exists( 'EVCIconList' ) ) {
 		function __construct() {
 			$this->setBase( 'evc_icon_list' );
 			$this->setChildBase( 'evc_icon_list_item' );
-			$this->setShortcodeName( esc_html__( 'Icon List', 'extensive-vc' ) );
+			$this->setShortcodeName( esc_html__( 'Icon List', 'extensive-vc-addon' ) );
 			$this->setShortcodeParameters( $this->shortcodeParameters() );
 			
 			// Parent constructor need to be loaded after setter's method initialization
@@ -68,8 +68,8 @@ if ( ! class_exists( 'EVCIconList' ) ) {
 				array(
 					'type'        => 'textfield',
 					'param_name'  => 'custom_class',
-					'heading'     => esc_html__( 'Custom CSS Class', 'extensive-vc' ),
-					'description' => esc_html__( 'Style particular content element differently - add a class name and refer to it in custom CSS', 'extensive-vc' )
+					'heading'     => esc_html__( 'Custom CSS Class', 'extensive-vc-addon' ),
+					'description' => esc_html__( 'Style particular content element differently - add a class name and refer to it in custom CSS', 'extensive-vc-addon' )
 				)
 			);
 			

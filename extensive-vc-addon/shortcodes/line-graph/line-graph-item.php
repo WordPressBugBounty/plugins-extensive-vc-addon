@@ -22,7 +22,7 @@ if ( ! class_exists( 'EVCLineGraphItem' ) ) {
 		function __construct() {
 			$this->setBase( 'evc_line_graph_item' );
 			$this->setParentBase( 'evc_line_graph' );
-			$this->setShortcodeName( esc_html__( 'Line Graph Item', 'extensive-vc' ) );
+			$this->setShortcodeName( esc_html__( 'Line Graph Item', 'extensive-vc-addon' ) );
 			$this->setShortcodeParameters( $this->shortcodeParameters() );
 			
 			// Parent constructor need to be loaded after setter's method initialization
@@ -50,12 +50,12 @@ if ( ! class_exists( 'EVCLineGraphItem' ) ) {
 				array(
 					'type'       => 'textfield',
 					'param_name' => 'label',
-					'heading'    => esc_html__( 'Label', 'extensive-vc' )
+					'heading'    => esc_html__( 'Label', 'extensive-vc-addon' )
 				),
 				array(
 					'type'       => 'textfield',
 					'param_name' => 'value',
-					'heading'    => esc_html__( 'Value', 'extensive-vc' )
+					'heading'    => esc_html__( 'Value', 'extensive-vc-addon' )
 				)
 			);
 			

@@ -1,8 +1,54 @@
+/******/ (() => { // webpackBootstrap
 (function ($) {
 	"use strict";
 	
 	window.evc = {};
-	
+
+	/**
+	 * Check element to be in the viewport
+	 */
+	var evcIsInViewport = {
+		check: function ($element, callback, onlyOnce, callbackOnExit) {
+			if ($element.length) {
+				var offset = typeof $element.data('viewport-offset') !== 'undefined' ? $element.data('viewport-offset') : 0.15; // When item is 15% in the viewport
+
+				// Fallback for browsers without IntersectionObserver support
+				if (!('IntersectionObserver' in window)) {
+					callback.call($element);
+
+					return;
+				}
+
+				// Element higher than viewport can't reach the threshold, so trigger it as soon as it enters the viewport
+				if ($element.outerHeight() * offset > window.innerHeight) {
+					offset = 0;
+				}
+
+				var observer = new IntersectionObserver(
+					function (entries) {
+						// isIntersecting is true when element and viewport are overlapping
+						// isIntersecting is false when element and viewport don't overlap
+						if (entries[0].isIntersecting === true) {
+							callback.call($element);
+
+							// Stop watching the element when it's initialized
+							if (onlyOnce !== false) {
+								observer.disconnect();
+							}
+						} else if (callbackOnExit && onlyOnce === false) {
+							callbackOnExit.call($element);
+						}
+					},
+					{threshold: [offset]}
+				);
+
+				observer.observe($element[0]);
+			}
+		}
+	};
+
+	evc.evcIsInViewport = evcIsInViewport;
+
 	$(document).ready(function () {
 		evcInitOWLCarousel();
 		evcInitPagination();
@@ -66,8 +112,8 @@
 					dots: pagination,
 					nav: navigation,
 					navText: [
-						'<span class="evc-prev-arrow ' + evcVars.global.sliderNavPrevArrow + '"></span>',
-						'<span class="evc-next-arrow ' + evcVars.global.sliderNavNextArrow + '"></span>'
+						'<span class="evc-prev-arrow">' + evcVars.global.sliderNavPrevArrow + '</span>',
+						'<span class="evc-next-arrow">' + evcVars.global.sliderNavNextArrow + '</span>'
 					],
 					responsive: {
 						0: {
@@ -124,18 +170,34 @@
 						},
 						url: evcVars.global.adminAjaxUrl,
 						success: function (data) {
-							var response = JSON.parse(data);
-							
-							shortcodeOptions['next_page'] = parseInt(shortcodeOptions['next_page'], 10) + 1;
-							
-							itemsHolder.append(response.data);
-							
+							var response = typeof data === 'string' ? JSON.parse(data) : data,
+								responseData = response.data !== null && typeof response.data === 'object' ? response.data : {html: response.data};
+
 							loadMoreButton.removeClass('evc-loading');
 							loadingSpinner.removeClass('evc-loading');
-							
+
+							if (response.status !== 'success') {
+								return;
+							}
+
+							itemsHolder.append(responseData.html);
+
+							shortcodeOptions['next_page'] = typeof responseData.next_page !== 'undefined' ? parseInt(responseData.next_page, 10) : parseInt(shortcodeOptions['next_page'], 10) + 1;
+
+							if (typeof responseData.max_pages_num !== 'undefined') {
+								shortcodeOptions['max_pages_num'] = parseInt(responseData.max_pages_num, 10);
+							}
+
 							if (shortcodeOptions['next_page'] > shortcodeOptions['max_pages_num']) {
 								loadMoreButton.hide();
 							}
+
+							// Trigger event so 3rd party scripts can initialize new loaded items
+							$(document.body).trigger('extensive_vc_trigger_pagination_loaded', [thisHolder, responseData]);
+						},
+						error: function () {
+							loadMoreButton.removeClass('evc-loading');
+							loadingSpinner.removeClass('evc-loading');
 						}
 					});
 				});
@@ -144,6 +206,90 @@
 	}
 	
 })(jQuery);
+
+(function ($) {
+	'use strict';
+
+	$(document).ready(function () {
+		evcInitAccordion();
+	});
+
+	/**
+	 * Init accordion shortcode functionality, markup follows WAI-ARIA accordion pattern
+	 */
+	function evcInitAccordion() {
+		var holder = $('.evc-accordion');
+
+		if (holder.length) {
+			var reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches,
+				duration = reduceMotion ? 0 : 250;
+
+			holder.each(function () {
+				var thisHolder = $(this),
+					isAccordion = thisHolder.data('behavior') === 'accordion',
+					items = thisHolder.children('.evc-accordion-item'),
+					buttons = items.find('> .evc-acc-title-holder > .evc-acc-title');
+
+				var toggleItem = function (item, open) {
+					var button = item.find('> .evc-acc-title-holder > .evc-acc-title'),
+						content = item.children('.evc-acc-content');
+
+					button.attr('aria-expanded', open ? 'true' : 'false');
+					item.toggleClass('evc-acc-item-open', open);
+
+					if (open) {
+						content.stop(true, true).removeAttr('hidden').hide().slideDown(duration);
+					} else {
+						content.stop(true, true).slideUp(duration, function () {
+							content.attr('hidden', '').css('display', '');
+						});
+					}
+				};
+
+				buttons.on('click', function () {
+					var item = $(this).closest('.evc-accordion-item'),
+						open = $(this).attr('aria-expanded') !== 'true';
+
+					if (open && isAccordion) {
+						items.not(item).filter('.evc-acc-item-open').each(function () {
+							toggleItem($(this), false);
+						});
+					}
+
+					toggleItem(item, open);
+				});
+
+				// Keyboard navigation between accordion headers
+				buttons.on('keydown', function (event) {
+					var index = buttons.index(this),
+						target = null;
+
+					switch (event.key) {
+						case 'ArrowDown':
+							target = buttons.eq((index + 1) % buttons.length);
+							break;
+						case 'ArrowUp':
+							target = buttons.eq((index - 1 + buttons.length) % buttons.length);
+							break;
+						case 'Home':
+							target = buttons.first();
+							break;
+						case 'End':
+							target = buttons.last();
+							break;
+					}
+
+					if (target) {
+						event.preventDefault();
+						target.trigger('focus');
+					}
+				});
+			});
+		}
+	}
+
+})(jQuery);
+
 (function ($) {
 	'use strict';
 	
@@ -216,6 +362,99 @@
 	};
 	
 })(jQuery);
+
+(function ($) {
+	'use strict';
+
+	$(document).ready(function () {
+		evcInitCountdown();
+	});
+
+	/**
+	 * Init countdown shortcode functionality
+	 */
+	function evcInitCountdown() {
+		var holder = $('.evc-countdown');
+
+		if (holder.length) {
+			holder.each(function () {
+				var thisHolder = $(this),
+					type = thisHolder.data('type'),
+					expireAction = thisHolder.data('expire-action'),
+					endTime = parseInt(thisHolder.data('end'), 10) || 0,
+					digits = thisHolder.find('.evc-cd-digit'),
+					unitSeconds = {days: 86400, hours: 3600, minutes: 60, seconds: 1},
+					interval;
+
+				// Evergreen countdown end time is saved per visitor
+				if (type === 'evergreen') {
+					endTime = evcGetEvergreenEndTime(thisHolder.data('id'), parseInt(thisHolder.data('duration'), 10) || 0);
+				}
+
+				var expire = function () {
+					clearInterval(interval);
+
+					if (expireAction === 'hide') {
+						thisHolder.hide();
+					} else if (expireAction === 'message' && thisHolder.find('.evc-cd-expired-message').length) {
+						thisHolder.addClass('evc-cd-expired');
+						thisHolder.find('.evc-cd-timer').attr('hidden', '');
+						thisHolder.find('.evc-cd-expired-message').removeAttr('hidden');
+					}
+				};
+
+				var update = function () {
+					var remaining = Math.max(0, Math.floor((endTime - Date.now()) / 1000));
+
+					// Values of hidden units are added to the next visible unit
+					digits.each(function () {
+						var digit = $(this),
+							seconds = unitSeconds[digit.data('unit')] || 1,
+							value = Math.floor(remaining / seconds);
+
+						remaining -= value * seconds;
+						digit.text(value < 10 ? '0' + value : value);
+					});
+
+					if (endTime <= Date.now()) {
+						expire();
+					}
+				};
+
+				update();
+				interval = setInterval(update, 1000);
+			});
+		}
+	}
+
+	/**
+	 * Get evergreen countdown end time, end time is saved into local storage when visitor opens the page for the first time
+	 */
+	function evcGetEvergreenEndTime(id, duration) {
+		var key = 'evcCountdown' + id,
+			endTime = 0;
+
+		try {
+			endTime = parseInt(window.localStorage.getItem(key), 10) || 0;
+		} catch (e) {
+			endTime = 0;
+		}
+
+		if (!endTime) {
+			endTime = Date.now() + duration * 1000;
+
+			try {
+				window.localStorage.setItem(key, endTime);
+			} catch (e) {
+				// Local storage is not available, countdown starts again on every page load
+			}
+		}
+
+		return endTime;
+	}
+
+})(jQuery);
+
 (function ($) {
 	'use strict';
 
@@ -234,7 +473,7 @@
 				var thisCounter = $(this),
 					digit = thisCounter.find('.evc-c-digit');
 
-				thisCounter.appear(function () {
+				evc.evcIsInViewport.check(thisCounter, function () {
 					thisCounter.css('opacity', '1');
 
 					digit.countTo({
@@ -243,12 +482,13 @@
 						speed: 1500,
 						refreshInterval: 100
 					});
-				}, {accX: 0, accY: -80});
+				});
 			});
 		}
 	}
 
 })(jQuery);
+
 (function ($) {
 	'use strict';
 	
@@ -364,6 +604,7 @@
 	}
 	
 })(jQuery);
+
 (function ($) {
 	'use strict';
 	
@@ -390,17 +631,17 @@
 			}
 		},
 		createChart: function (holder) {
-			holder.appear(function () {
+			evc.evcIsInViewport.check(holder, function () {
 				holder.addClass('evc-dc-appeared');
 				
-				var chart = new Chart(holder.children('canvas'), {
+				var chart = new Chart(holder.children('canvas')[0], {
 					type: 'doughnut',
 					data: evcDoughnutChart.getChartData(holder),
 					options: evcDoughnutChart.getChartOptions(holder)
 				});
 				
 				evcDoughnutChart.charts.push(chart);
-			}, {accX: 0, accY: -80});
+			});
 		},
 		getChartData: function (holder) {
 			var chartItem = holder.children('.evc-doughnut-chart-item'),
@@ -452,12 +693,16 @@
 				options = {};
 			
 			options['responsive'] = true;
-			options['legend'] = {
-				display: enableLegend,
-				position: legendPosition,
-				labels: {
-					fontSize: legendTextSize,
-					fontColor: legendColor
+			options['plugins'] = {
+				legend: {
+					display: !!enableLegend,
+					position: legendPosition,
+					labels: {
+						font: {
+							size: legendTextSize
+						},
+						color: legendColor
+					}
 				}
 			};
 			
@@ -466,6 +711,7 @@
 	};
 	
 })(jQuery);
+
 (function ($) {
 	'use strict';
 	
@@ -524,6 +770,7 @@
 	}
 	
 })(jQuery);
+
 (function ($) {
 	'use strict';
 
@@ -546,7 +793,7 @@
 					timeouts = [];
 
 				if (barIcons.length && typeof numberOfActiveIcons !== 'undefined' && numberOfActiveIcons !== false) {
-					thisBar.appear(function () {
+					evc.evcIsInViewport.check(thisBar, function () {
 						barIcons.each(function (i) {
 							if (i < numberOfActiveIcons) {
 								var time = (i + 1) * 150;
@@ -560,13 +807,85 @@
 								}, time);
 							}
 						});
-					}, {accX: 0, accY: -80});
+					});
 				}
 			});
 		}
 	}
 
 })(jQuery);
+
+(function ($) {
+	'use strict';
+
+	$(document).ready(function () {
+		evcInitImageComparison();
+	});
+
+	/**
+	 * Init image comparison shortcode functionality
+	 * Range input is used for keyboard and screen readers, pointer events are used for dragging
+	 */
+	function evcInitImageComparison() {
+		var holder = $('.evc-image-comparison');
+
+		if (holder.length) {
+			holder.each(function () {
+				var thisHolder = $(this),
+					element = thisHolder[0],
+					inner = thisHolder.find('.evc-ic-inner')[0],
+					range = thisHolder.find('.evc-ic-range')[0],
+					isVertical = thisHolder.hasClass('evc-ic-vertical'),
+					moveOnHover = thisHolder.hasClass('evc-ic-move-on-hover'),
+					isDragging = false;
+
+				if (!inner || !range) {
+					return;
+				}
+
+				var setPosition = function (position) {
+					position = Math.min(100, Math.max(0, position));
+
+					element.style.setProperty('--evc-ic-position', position + '%');
+					range.value = position;
+				};
+
+				var getPointerPosition = function (event) {
+					var rect = inner.getBoundingClientRect();
+
+					return isVertical ? (event.clientY - rect.top) / rect.height * 100 : (event.clientX - rect.left) / rect.width * 100;
+				};
+
+				range.addEventListener('input', function () {
+					setPosition(parseFloat(range.value));
+				});
+
+				inner.addEventListener('pointerdown', function (event) {
+					isDragging = true;
+					inner.setPointerCapture(event.pointerId);
+					setPosition(getPointerPosition(event));
+					thisHolder.addClass('evc-ic-dragging');
+				});
+
+				inner.addEventListener('pointermove', function (event) {
+					if (isDragging || (moveOnHover && event.pointerType === 'mouse')) {
+						setPosition(getPointerPosition(event));
+					}
+				});
+
+				var stopDragging = function () {
+					isDragging = false;
+					thisHolder.removeClass('evc-ic-dragging');
+				};
+
+				inner.addEventListener('pointerup', stopDragging);
+				inner.addEventListener('pointercancel', stopDragging);
+			});
+		}
+	}
+
+})(jQuery);
+
 (function ($) {
 	'use strict';
 	
@@ -585,12 +904,12 @@
 				var thisHolder = $(this),
 					legendText = thisHolder.data('legend-text'),
 					holderBorderColor = thisHolder.data('border-color'),
-					borderColor = holderBorderColor !== undefined && holderBorderColor !== '' ? holderBorderColor : '',
+					borderColor = holderBorderColor !== undefined && holderBorderColor !== '' ? holderBorderColor : 'rgba(0, 0, 0, 0.1)',
 					holderBorderWidth = thisHolder.data('border-width'),
-					borderWidth = holderBorderWidth !== undefined && holderBorderWidth !== '' ? holderBorderWidth : '',
+					borderWidth = holderBorderWidth !== undefined && holderBorderWidth !== '' ? parseInt(holderBorderWidth, 10) : 3,
 					showLine = thisHolder.data('disable-line') !== 'yes',
 					holderBackgroundColor = thisHolder.data('background-color'),
-					backgroundColor = holderBackgroundColor !== undefined && holderBackgroundColor !== '' ? holderBackgroundColor : '',
+					backgroundColor = holderBackgroundColor !== undefined && holderBackgroundColor !== '' ? holderBackgroundColor : 'rgba(0, 0, 0, 0.1)',
 					pieChartItem = thisHolder.children('.evc-line-graph-item'),
 					canvas = thisHolder.children('canvas'),
 					labels = [],
@@ -610,10 +929,10 @@
 					}
 				});
 				
-				thisHolder.appear(function () {
+				evc.evcIsInViewport.check(thisHolder, function () {
 					thisHolder.addClass('evc-lg-appeared');
 					
-					new Chart(canvas, {
+					new Chart(canvas[0], {
 						type: 'line',
 						data: {
 							labels: labels,
@@ -623,16 +942,19 @@
 								backgroundColor: backgroundColor,
 								borderColor: borderColor,
 								borderWidth: borderWidth,
-								showLine: showLine
+								showLine: showLine,
+								fill: true,
+								tension: 0.4
 							}]
 						}
 					});
-				}, {accX: 0, accY: -80});
+				});
 			});
 		}
 	}
 	
 })(jQuery);
+
 (function ($) {
 	'use strict';
 	
@@ -659,17 +981,17 @@
 			}
 		},
 		createChart: function (holder) {
-			holder.appear(function () {
+			evc.evcIsInViewport.check(holder, function () {
 				holder.addClass('evc-pc-appeared');
 				
-				var chart = new Chart(holder.children('canvas'), {
+				var chart = new Chart(holder.children('canvas')[0], {
 					type: 'pie',
 					data: evcPieChart.getChartData(holder),
 					options: evcPieChart.getChartOptions(holder)
 				});
 				
 				evcPieChart.charts.push(chart);
-			}, {accX: 0, accY: -80});
+			});
 		},
 		getChartData: function (holder) {
 			var chartItem = holder.children('.evc-pie-chart-item'),
@@ -721,12 +1043,16 @@
 				options = {};
 			
 			options['responsive'] = true;
-			options['legend'] = {
-				display: enableLegend,
-				position: legendPosition,
-				labels: {
-					fontSize: legendTextSize,
-					fontColor: legendColor
+			options['plugins'] = {
+				legend: {
+					display: !!enableLegend,
+					position: legendPosition,
+					labels: {
+						font: {
+							size: legendTextSize
+						},
+						color: legendColor
+					}
 				}
 			};
 			
@@ -735,31 +1061,7 @@
 	};
 	
 })(jQuery);
-(function ($) {
-	'use strict';
-	
-	$(document).ready(function () {
-		evcInitProcess();
-	});
-	
-	/**
-	 * Inti process shortcode functionality on appear
-	 */
-	function evcInitProcess() {
-		var holder = $('.evc-process');
-		
-		if (holder.length) {
-			holder.each(function () {
-				var thisHolder = $(this);
-				
-				thisHolder.appear(function () {
-					thisHolder.addClass('evc-process-appeared');
-				}, {accX: 0, accY: -80});
-			});
-		}
-	}
-	
-})(jQuery);
+
 (function ($) {
 	'use strict';
 	
@@ -777,14 +1079,41 @@
 			holder.each(function () {
 				var thisHolder = $(this);
 				
-				thisHolder.appear(function () {
+				evc.evcIsInViewport.check(thisHolder, function () {
 					thisHolder.addClass('evc-process-appeared');
-				}, {accX: 0, accY: -80});
+				});
 			});
 		}
 	}
 	
 })(jQuery);
+
+(function ($) {
+	'use strict';
+	
+	$(document).ready(function () {
+		evcInitProcess();
+	});
+	
+	/**
+	 * Inti process shortcode functionality on appear
+	 */
+	function evcInitProcess() {
+		var holder = $('.evc-process');
+		
+		if (holder.length) {
+			holder.each(function () {
+				var thisHolder = $(this);
+				
+				evc.evcIsInViewport.check(thisHolder, function () {
+					thisHolder.addClass('evc-process-appeared');
+				});
+			});
+		}
+	}
+	
+})(jQuery);
+
 (function ($) {
 	'use strict';
 	
@@ -807,7 +1136,7 @@
 					percentValue = parseFloat(barContent.data('percentage'));
 				
 				if (typeof percentValue !== 'undefined' && percentValue !== false) {
-					thisBar.appear(function () {
+					evc.evcIsInViewport.check(thisBar, function () {
 						evcInitProgressBarCounter(percent, percentValue);
 						
 						if(isVerticalType) {
@@ -815,7 +1144,7 @@
 						} else {
 							barContent.stop().animate({'width': percentValue + '%'}, 1500);
 						}
-					}, {accX: 0, accY: -80});
+					});
 				}
 			});
 		}
@@ -841,6 +1170,97 @@
 	}
 	
 })(jQuery);
+
+(function ($) {
+	'use strict';
+
+	$(document).ready(function () {
+		evcInitSectionTitleAnimatedWords();
+	});
+
+	/**
+	 * Init section title animated words (typing and rotating effects)
+	 */
+	function evcInitSectionTitleAnimatedWords() {
+		var holder = $('.evc-section-title .evc-st-animated');
+
+		if (holder.length) {
+			var reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+			holder.each(function () {
+				var thisHolder = $(this),
+					words = thisHolder.data('words'),
+					type = thisHolder.data('type'),
+					delay = parseInt(thisHolder.data('delay'), 10) || 2000;
+
+				// Animation is not used when user prefers reduced motion, first word is displayed
+				if (reduceMotion || !Array.isArray(words) || words.length < 2) {
+					return;
+				}
+
+				evc.evcIsInViewport.check(thisHolder, function () {
+					if (type === 'rotating') {
+						evcRotateWords(thisHolder, words, delay);
+					} else {
+						evcTypeWords(thisHolder, words, delay);
+					}
+				});
+			});
+		}
+	}
+
+	/**
+	 * Typing effect, word is typed letter by letter and then deleted
+	 */
+	function evcTypeWords(holder, words, delay) {
+		var element = holder[0],
+			wordIndex = 0,
+			charIndex = words[0].length,
+			isDeleting = true;
+
+		holder.addClass('evc-st-animated-active');
+
+		var tick = function () {
+			var word = words[wordIndex],
+				timeout = isDeleting ? 40 : 90;
+
+			charIndex += isDeleting ? -1 : 1;
+			element.textContent = word.substring(0, charIndex);
+
+			if (!isDeleting && charIndex === word.length) {
+				isDeleting = true;
+				timeout = delay;
+			} else if (isDeleting && charIndex === 0) {
+				isDeleting = false;
+				wordIndex = (wordIndex + 1) % words.length;
+				timeout = 300;
+			}
+
+			setTimeout(tick, timeout);
+		};
+
+		setTimeout(tick, delay);
+	}
+
+	/**
+	 * Rotating effect, words are changed with fade animation
+	 */
+	function evcRotateWords(holder, words, delay) {
+		var wordIndex = 0;
+
+		setInterval(function () {
+			holder.addClass('evc-st-animated-hide');
+
+			setTimeout(function () {
+				wordIndex = (wordIndex + 1) % words.length;
+				holder[0].textContent = words[wordIndex];
+				holder.removeClass('evc-st-animated-hide');
+			}, 300);
+		}, delay);
+	}
+
+})(jQuery);
+
 (function ($) {
 	'use strict';
 	
@@ -937,6 +1357,7 @@
 	}
 	
 })(jQuery);
+
 (function ($) {
 	'use strict';
 	
@@ -972,7 +1393,7 @@
 				
 				thisTabs.tabs();
 				
-				thisTabs.appear(function () {
+				evc.evcIsInViewport.check(thisTabs, function () {
 					thisTabs.css({'visibility': 'visible'});
 					showTabContent(tabContent);
 				});
@@ -1001,163 +1422,114 @@
 	}
 	
 })(jQuery);
+
 (function ($) {
 	'use strict';
-	
+
 	$(document).ready(function () {
 		evcInitTextMarquee();
 	});
-    
-    /**
-     * Init Text Marquee effect
-     */
-    function evcInitTextMarquee() {
-	    var textMarquee = $('.evc-text-marquee');
-	
-	    if (textMarquee.length) {
-		    textMarquee.each(function () {
-			    var thisTextMarquee = $(this),
-				    marqueeElements = thisTextMarquee.find('.evc-tm-element'),
-				    originalText = marqueeElements.filter('.evc-tm-original'),
-				    auxText = marqueeElements.filter('.evc-tm-aux');
-			
-			    var calcWidth = function (element) {
-				    var width;
-				
-				    if (thisTextMarquee.outerWidth() > element.outerWidth()) {
-					    width = thisTextMarquee.outerWidth();
-				    } else {
-					    width = element.outerWidth();
-				    }
-				
-				    return width;
-			    };
-			
-			    var marqueeEffect = function () {
-				    evcRequestAnimationFrame();
-				
-				    var delta = 1, //pixel movement
-					    speedCoeff = 0.8, // below 1 to slow down, above 1 to speed up
-					    marqueeWidth = calcWidth(originalText);
-				
-				    marqueeElements.css({'width': marqueeWidth}); // set the same width to both elements
-				    auxText.css('left', marqueeWidth); //set to the right of the initial marquee element
-				
-				    //movement loop
-				    marqueeElements.each(function (i) {
-					    var marqueeElement = $(this),
-						    currentPos = 0;
-					
-					    var evcInfiniteScrollEffect = function () {
-						    currentPos -= delta;
-						
-						    //move marquee element
-						    if (marqueeElement.position().left <= -marqueeWidth) {
-							    marqueeElement.css('left', parseInt(marqueeWidth - delta));
-							    currentPos = 0;
-						    }
-						
-						    marqueeElement.css('transform', 'translate3d(' + speedCoeff * currentPos + 'px,0,0)');
-						
-						    requestNextAnimationFrame(evcInfiniteScrollEffect);
-						
-						    $(window).resize(function () {
-							    marqueeWidth = calcWidth(originalText);
-							    currentPos = 0;
-							    originalText.css('left', 0);
-							    auxText.css('left', marqueeWidth); //set to the right of the inital marquee element
-						    });
-					    };
-					
-					    evcInfiniteScrollEffect();
-				    });
-			    };
-			
-			    marqueeEffect();
-		    });
-	    }
-    }
-    
-    /*
-     * Request Animation Frame shim
-     */
-	function evcRequestAnimationFrame() {
-		window.requestNextAnimationFrame =
-			(function () {
-				var originalWebkitRequestAnimationFrame,
-					wrapper,
-					callback,
-					geckoVersion = 0,
-					userAgent = navigator.userAgent,
-					index = 0,
-					self = this;
-				
-				// Workaround for Chrome 10 bug where Chrome
-				// does not pass the time to the animation function
-				if (window.webkitRequestAnimationFrame) {
-					// Define the wrapper
-					wrapper = function (time) {
-						if (time === undefined) {
-							time = +new Date();
-						}
-						
-						self.callback(time);
-					};
-					
-					// Make the switch
-					originalWebkitRequestAnimationFrame = window.webkitRequestAnimationFrame;
-					
-					window.webkitRequestAnimationFrame = function (callback, element) {
-						self.callback = callback;
-						
-						// Browser calls the wrapper and wrapper calls the callback
-						originalWebkitRequestAnimationFrame(wrapper, element);
-					};
+
+	/**
+	 * Init Text Marquee effect
+	 */
+	function evcInitTextMarquee() {
+		var textMarquee = $('.evc-text-marquee');
+
+		if (textMarquee.length) {
+			textMarquee.each(function () {
+				var thisTextMarquee = $(this),
+					marqueeElements = thisTextMarquee.find('.evc-tm-element'),
+					originalText = marqueeElements.filter('.evc-tm-original'),
+					auxText = marqueeElements.filter('.evc-tm-aux'),
+					delta = 1, // pixel movement
+					speedCoeff = 0.8, // below 1 to slow down, above 1 to speed up
+					marqueeWidth = 0,
+					positions = [],
+					isVisible = false,
+					isRunning = false,
+					resizeTimeout;
+
+				if (!originalText.length || !auxText.length) {
+					return;
 				}
-				
-				// Workaround for Gecko 2.0, which has a bug in
-				// mozRequestAnimationFrame() that restricts animations
-				// to 30-40 fps.
-				if (window.mozRequestAnimationFrame) {
-					// Check the Gecko version. Gecko is used by browsers
-					// other than Firefox. Gecko 2.0 corresponds to
-					// Firefox 4.0.
-					
-					index = userAgent.indexOf('rv:');
-					
-					if (userAgent.indexOf('Gecko') !== -1) {
-						geckoVersion = userAgent.substr(index + 3, 3);
-						
-						if (geckoVersion === '2.0') {
-							// Forces the return statement to fall through
-							// to the setTimeout() function.
-							
-							window.mozRequestAnimationFrame = undefined;
+
+				// Calculate element width from its natural size, so previous inline width doesn't affect the result
+				var calcWidth = function () {
+					marqueeElements.css('width', '');
+
+					return Math.max(thisTextMarquee.outerWidth(), originalText.outerWidth());
+				};
+
+				var setPositions = function () {
+					marqueeElements.each(function (i) {
+						$(this).css('transform', 'translate3d(' + positions[i] + 'px,0,0)');
+					});
+				};
+
+				// Set the same width to both elements and place aux element right after the original one
+				var setup = function () {
+					marqueeWidth = calcWidth();
+					positions = [0, marqueeWidth];
+
+					marqueeElements.css({'width': marqueeWidth, 'left': 0});
+					setPositions();
+				};
+
+				// Movement loop
+				var marqueeEffect = function () {
+					if (!isVisible) {
+						isRunning = false;
+
+						return;
+					}
+
+					for (var i = 0; i < positions.length; i++) {
+						positions[i] -= delta * speedCoeff;
+
+						// Element is moved out of the view, so place it after the other element
+						if (positions[i] <= -marqueeWidth) {
+							positions[i] += marqueeWidth * positions.length;
 						}
 					}
+
+					setPositions();
+					window.requestAnimationFrame(marqueeEffect);
+				};
+
+				var start = function () {
+					isVisible = true;
+
+					if (!isRunning) {
+						isRunning = true;
+						window.requestAnimationFrame(marqueeEffect);
+					}
+				};
+
+				setup();
+
+				// Recalculate width when web fonts are loaded, text width can be changed after font swap
+				if (document.fonts && document.fonts.ready) {
+					document.fonts.ready.then(setup);
 				}
-				
-				return window.requestAnimationFrame   ||
-					window.webkitRequestAnimationFrame ||
-					window.mozRequestAnimationFrame    ||
-					window.oRequestAnimationFrame      ||
-					window.msRequestAnimationFrame     ||
-					
-					function (callback, element) {
-						var start,
-							finish;
-						
-						window.setTimeout( function () {
-							start = +new Date();
-							callback(start);
-							finish = +new Date();
-							
-							self.timeout = 1000 / 60 - (finish - start);
-							
-						}, self.timeout);
-					};
-				}
-			)();
+
+				$(window).on('load', setup);
+
+				$(window).on('resize', function () {
+					clearTimeout(resizeTimeout);
+					resizeTimeout = setTimeout(setup, 150);
+				});
+
+				// Animate only while element is in the viewport
+				thisTextMarquee.data('viewport-offset', 0);
+				evc.evcIsInViewport.check(thisTextMarquee, start, false, function () {
+					isVisible = false;
+				});
+			});
+		}
 	}
 
 })(jQuery);
+
+/******/ })()
+;

@@ -22,7 +22,7 @@ if ( ! class_exists( 'EVCTabsItem' ) ) {
 		function __construct() {
 			$this->setBase( 'evc_tabs_item' );
 			$this->setParentBase( 'evc_tabs' );
-			$this->setShortcodeName( esc_html__( 'Tabs Item', 'extensive-vc' ) );
+			$this->setShortcodeName( esc_html__( 'Tabs Item', 'extensive-vc-addon' ) );
 			$this->setShortcodeParameters( $this->shortcodeParameters() );
 			
 			// Parent constructor need to be loaded after setter's method initialization
@@ -50,13 +50,13 @@ if ( ! class_exists( 'EVCTabsItem' ) ) {
 				array(
 					'type'        => 'textfield',
 					'param_name'  => 'custom_class',
-					'heading'     => esc_html__( 'Custom CSS Class', 'extensive-vc' ),
-					'description' => esc_html__( 'Style particular content element differently - add a class name and refer to it in custom CSS', 'extensive-vc' )
+					'heading'     => esc_html__( 'Custom CSS Class', 'extensive-vc-addon' ),
+					'description' => esc_html__( 'Style particular content element differently - add a class name and refer to it in custom CSS', 'extensive-vc-addon' )
 				),
 				array(
 					'type'       => 'textfield',
 					'param_name' => 'tab_title',
-					'heading'    => esc_html__( 'Title', 'extensive-vc' )
+					'heading'    => esc_html__( 'Title', 'extensive-vc-addon' )
 				)
 			);
 			
@@ -74,11 +74,11 @@ if ( ! class_exists( 'EVCTabsItem' ) ) {
 		function render( $atts, $content = null ) {
 			$args   = array(
 				'custom_class'     => '',
-				'tab_title'        => esc_html__( 'Tab Title', 'extensive-vc' )
+				'tab_title'        => esc_html__( 'Tab Title', 'extensive-vc-addon' )
 			);
 			$params = shortcode_atts( $args, $atts, $this->getBase() );
 			
-			$rand_number = rand( 0, 2000 );
+			$rand_number = wp_rand( 0, 2000 );
 			
 			$params['holder_classes'] = $this->getHolderClasses( $params );
 			$params['tab_title']      = $params['tab_title'] . '-' . $rand_number;

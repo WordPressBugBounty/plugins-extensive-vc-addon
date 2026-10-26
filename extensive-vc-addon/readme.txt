@@ -1,11 +1,11 @@
-=== Extensive VC Addons for WPBakery page builder ===
+=== Extensive VC Addons for WPBakery Page Builder ===
 Contributors: nenad-obradovic
 Tags: wpbakery, wpbakery addons, wpbakery page builder, shortcodes
 Donate link: http://wprealize.com/donate/
-Requires at least: 4.6
-Tested up to: 5.8
-Stable tag: 1.9.1
-Requires PHP: 5.3
+Requires at least: 6.0
+Tested up to: 7.1
+Stable tag: 2.1
+Requires PHP: 8.2
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -24,7 +24,8 @@ See the all of addons elements in the action here - <a href="http://wprealize.co
 <h3>Features</h3>
 <h4 style="margin-top: 1rem;">1. Shortcodes</h4>
 <ul>
-	<li><a href="http://wprealize.com/classic/blog-list/">Classic - Blog List (New)</a></li>
+	<li>Classic - Accordion / FAQ with FAQ schema (New)</li>
+	<li><a href="http://wprealize.com/classic/blog-list/">Classic - Blog List</a></li>
 	<li><a href="http://wprealize.com/classic/button/">Classic - Button</a></li>
 	<li><a href="http://wprealize.com/classic/clients/">Classic - Clients</a></li>
 	<li><a href="http://wprealize.com/classic/icon-with-text/">Classic - Icon With Text</a></li>
@@ -33,28 +34,31 @@ See the all of addons elements in the action here - <a href="http://wprealize.co
 	<li><a href="http://wprealize.com/classic/separator/">Classic - Separator</a></li>
 	<li><a href="http://wprealize.com/classic/single-image/">Classic - Single Image</a></li>
 	<li><a href="http://wprealize.com/classic/tabs/">Classic - Tabs</a></li>
-	<li><a href="http://wprealize.com/interactive/flip-image/">Interactive - Flip Image</a></li>
+	<li>Classic - Team Member (New)</li>
+	<li><a href="http://wprealize.com/interactive/flip-image/">Interactive - Flip Image / Flip Box</a></li>
 	<li><a href="http://wprealize.com/interactive/full-screen-sections/">Interactive - Full Screen Sections</a></li>
 	<li><a href="http://wprealize.com/interactive/gallery-block/">Interactive - Gallery Block</a></li>
+	<li>Interactive - Image Comparison (New)</li>
 	<li><a href="http://wprealize.com/interactive/image-gallery/">Interactive - Image Gallery</a></li>
 	<li><a href="http://wprealize.com/interactive/interactive-banner/">Interactive - Interactive Banner</a></li>
 	<li><a href="http://wprealize.com/interactive/process/">Interactive - Process</a></li>
 	<li><a href="http://wprealize.com/interactive/process-2/">Interactive - Process 2</a></li>
-	<li><a href="http://wprealize.com/interactive/product-list/">Interactive - Product List (New)</a></li>
+	<li><a href="http://wprealize.com/interactive/product-list/">Interactive - Product List</a></li>
 	<li><a href="http://wprealize.com/interactive/testimonials/">Interactive - Testimonials</a></li>
 	<li><a href="http://wprealize.com/infographic/counter/">Infographic - Counter</a></li>
+	<li>Infographic - Countdown (New)</li>
 	<li><a href="http://wprealize.com/infographic/doughnut-chart/">Infographic - Doughnut Chart</a></li>
 	<li><a href="http://wprealize.com/infographic/icon-progress-bar/">Infographic - Icon Progress Bar</a></li>
 	<li><a href="http://wprealize.com/infographic/line-graph/">Infographic - Line Graph</a></li>
 	<li><a href="http://wprealize.com/infographic/pie-chart/">Infographic - Pie Chart</a></li>
-	<li><a href="http://wprealize.com/infographic/post-carousel/">Infographic - Post Carousel (New)</a></li>
+	<li><a href="http://wprealize.com/infographic/post-carousel/">Infographic - Post Carousel</a></li>
 	<li><a href="http://wprealize.com/infographic/progress-bar/">Infographic - Progress Bar</a></li>
 	<li><a href="http://wprealize.com/infographic/text-marquee/">Infographic - Text Marquee</a></li>
 	<li><a href="http://wprealize.com/typography/blockquote/">Typography - Blockquote</a></li>
 	<li><a href="http://wprealize.com/typography/custom-font/">Typography - Custom Font</a></li>
 	<li><a href="http://wprealize.com/typography/dropcaps/">Typography - Dropcaps</a></li>
 	<li><a href="http://wprealize.com/typography/icon-list/">Typography - Icon List</a></li>
-	<li><a href="http://wprealize.com/typography/section-title/">Typography - Section Title</a></li>
+	<li><a href="http://wprealize.com/typography/section-title/">Typography - Section Title with animated words</a></li>
 	<li><a href="http://wprealize.com/typography/svg-text/">Typography - SVG Text</a></li>
 </ul>
 <h4 style="margin-top: 1rem;">2. Custom Post Types</h4>
@@ -76,6 +80,14 @@ See the all of addons elements in the action here - <a href="http://wprealize.co
     <li><a href="https://codecanyon.net/item/visual-composer-page-builder-for-wordpress/242431?ref=extensive-vc-addon" target="_blank">WPBakery Page Builder</a></li>
     <li><a href="https://wordpress.org/plugins/contact-form-7" target="_blank">Contact Form 7</a></li>
     <li><a href="https://wordpress.org/plugins/woocommerce/" target="_blank">WooCommerce</a></li>
+</ul>
+<h4 style="margin-top: 1rem;">5. Global Options</h4>
+<ul>
+    <li>Responsive options for all elements - hide element and set margin per device (desktop, tablet, mobile)</li>
+    <li>Styles and scripts are loaded only on pages where elements are used</li>
+    <li>Predefined style fonts are loaded locally, without connection to Google servers</li>
+    <li>WPML and Polylang compatibility (wpml-config.xml for elements translation)</li>
+    <li>Action hooks in all element templates for easier customization</li>
 </ul>
 <p><strong>This is just the beginning...</strong></p>
 
@@ -114,6 +126,74 @@ My plugin it is extension for WPBakery page builder so you must first install/ac
 5. Blockquote shortcode example.
 
 == Changelog ==
+
+2.1
+- Added Team Member element with social icons
+- Added Countdown element with fixed date and evergreen types
+- Added Image Comparison (before/after) element with keyboard support
+- Added Accordion / FAQ element with accessible markup and optional FAQ schema (structured data)
+- Added Flip Box option for Flip Image element (front side content, back side button)
+- Added animated words (typing and rotating effects) for Section Title element
+- Added responsive options for all elements (hide element and set margin per device)
+- Added Assets Loading option, styles and scripts are loaded only on pages where elements are used
+- Added Predefined Style Fonts option, Raleway and Poppins fonts are loaded locally by default (GDPR friendly)
+- Added wpml-config.xml for elements translation with WPML
+- Added svg icons support for elements in WPBakery Page Builder panel
+- Improved main color option for new elements
+- Improved Flip Image element, element is flipped on keyboard focus and animation respects reduced motion setting
+- Fixed Text Marquee and Process 2 style sections in main stylesheet
+- Updated language pot file
+
+2.0
+- Added PHP 8.4 compatibility
+- Added WordPress 7.1 compatibility
+- Added WooCommerce High-Performance Order Storage and Cart/Checkout blocks compatibility
+- Added Polylang and WPML support for Blog List load more pagination
+- Added before/after action hooks into shortcode templates (e.g. extensive_vc_action_before_button, extensive_vc_action_button_before_content)
+- Added extensive_vc_filter_query_params, extensive_vc_filter_pagination_data_return filters and extensive_vc_trigger_pagination_loaded JS event for pagination customization
+- Added extensive_vc_action_save_post_meta_box hook and array values support for meta box fields
+- Added Image Size option for Icon With Text custom icon and Process 2 item image
+- Added basic inline HTML support (strong, em, a, br...) for Icon List item text
+- Added inline SVG icons instead of Ionicons icon font
+- Added custom viewport check script (IntersectionObserver) instead of jQuery Appear library
+- Added plugin version to enqueued scripts and styles
+- Updated Chart.js script to v4.5.1
+- Updated Lightbox script to v2.12.0
+- Updated minimum requirements to PHP 8.2 and WordPress 6.0
+- Updated text domain to extensive-vc-addon (plugin slug) so translations from translate.wordpress.org are loaded
+- Updated language pot file
+- Improved plugin security, all user inputs are sanitized and all outputs are escaped
+- Improved 3rd party libraries registration, all libraries are registered once with standard handles (owl-carousel, lightbox, chart-js, fullpage, jquery-countto) so the same library is not loaded multiple times
+- Improved helper functions for html attributes, string units, image sizes and ajax response
+- Improved image size option to support all registered image sizes
+- Improved categories autocomplete fields to use WordPress terms API instead of direct database queries
+- Improved Text Marquee animation performance, animation is paused when element is not visible
+- Improved Google Fonts loading with display swap
+- Improved plugin files loading with require_once and absolute paths
+- Fixed Unauthenticated Local File Inclusion via shortcode pagination ajax request (CVE-2025-14475)
+- Fixed template part paths (module, template and slug) sanitization before including files
+- Fixed pagination ajax request to accept only allowed shortcodes and sanitized options
+- Fixed title tag options escaping through list of allowed HTML tags
+- Fixed admin options and meta box fields sanitization before saving, meta box nonce is always verified
+- Fixed escaping of lightbox image titles
+- Fixed fatal error on front-end when WPBakery Page Builder plugin is not active, plugin is not deactivated automatically anymore
+- Fixed PHP 8 fatal error in WooCommerce product checks when product is not available
+- Fixed Undefined index notices on clients/testimonials save
+- Fixed PHP warning when single number is used for image size option
+- Fixed Product List shortcode to exclude products hidden from catalog and out of stock products when WooCommerce option is enabled
+- Fixed Contact Form 7 widget not listing contact forms
+- Fixed widgets select fields markup and textarea fields sanitization
+- Fixed lightbox script not loaded for Gallery Block, Single Image and Image With Text shortcodes when Image Gallery shortcode is disabled
+- Fixed Blog List load more ignoring zero values such as excerpt length 0
+- Fixed Text Marquee overlapping at the loop point and resize event handlers registered on every animation frame
+- Fixed Progress Bar percent value displayed before the animation and counter final value
+- Fixed deprecated jQuery resize event shorthand
+- Fixed activation redirect to plugin About page
+- Removed Ionicons font files and Disable Ionicons Font option
+- Removed jQuery Appear library
+- Removed duplicated Chart.js and counter scripts
+- Removed empty magic methods
+- Removed load_plugin_textdomain function, translations are loaded automatically by WordPress
 
 1.9.1
 - Improved plugins security (WPScan)
@@ -428,3 +508,11 @@ My plugin it is extension for WPBakery page builder so you must first install/ac
 
 = 1.0 =
 - Initial release.
+
+== Upgrade Notice ==
+
+= 2.1 =
+New elements (Team Member, Countdown, Image Comparison, Accordion/FAQ), responsive options and faster loading. If elements are loaded through ajax or custom templates, set Extensive VC -> Settings -> Assets Loading to all assets.
+
+= 2.0 =
+Important security release. Requires PHP 8.2+ and WordPress 6.0+. Ionicons font is removed and Chart.js is updated to v4, please check your custom code if it uses ion-* icon classes or window.evc chart objects.
